@@ -2,20 +2,13 @@
 // @ts-nocheck
 
 import {
-  WagmiConfig,
-  createClient,
-  configureChains,
-  Chain,
   useConnect,
   useSigner,
   useDisconnect,
-  mainnet,
   useAccount,
   useBalance,
+  useContract,
 } from "wagmi";
-import { publicProvider } from "wagmi/providers/public";
-import { WalletConnectConnector } from "wagmi/connectors/walletConnect";
-import { MetaMaskConnector } from "wagmi/connectors/metaMask";
 import { multicall } from "@wagmi/core";
 import wagmiGotchiABI from "./contracts/wagmiGotchiABI.json";
 import mLootABI from "./contracts/mLootABI.json";
@@ -29,57 +22,37 @@ const mlootContract = {
   abi: mLootABI,
 };
 
-const CHAIN_ID = 97;
-const WALLET_CONNECT_PROJECT_ID = "3f930f8e56336b44761655d8a270144c";
-const RPC_URL =
-  "https://bsc-testnet.nodereal.io/v1/f9777f42cc9243f0a766937df1c6a5f3";
+// const CHAIN_ID = 97;
+// const RPC_URL =
+//   "https://bsc-testnet.nodereal.io/v1/f9777f42cc9243f0a766937df1c6a5f3";
 
-const bscExplorer = {
-  name: "BscScan",
-  url: "https://testnet.bscscan.com",
-};
+// const bscExplorer = {
+//   name: "BscScan",
+//   url: "https://testnet.bscscan.com",
+// };
 
-const chain: Chain = {
-  id: CHAIN_ID,
-  name: "BSC Testnet",
-  network: "bsc-testnet",
-  rpcUrls: {
-    default: {
-      http: [RPC_URL],
-    },
-    public: {
-      http: [RPC_URL],
-    },
-  },
-  blockExplorers: {
-    default: bscExplorer,
-    etherscan: bscExplorer,
-  },
-  nativeCurrency: {
-    name: "BSC Native Token",
-    symbol: "BNB",
-    decimals: 18,
-  },
-};
-
-const { provider } = configureChains([mainnet], [publicProvider()]);
-
-const client = createClient({
-  autoConnect: true,
-  provider,
-  connectors: [
-    new WalletConnectConnector({
-      chains: [mainnet],
-      options: {
-        projectId: WALLET_CONNECT_PROJECT_ID,
-        showQrModal: true,
-      },
-    }),
-    new MetaMaskConnector({
-      chains: [mainnet],
-    }),
-  ],
-});
+// const chain: Chain = {
+//   id: CHAIN_ID,
+//   name: "BSC Testnet",
+//   network: "bsc-testnet",
+//   rpcUrls: {
+//     default: {
+//       http: [RPC_URL],
+//     },
+//     public: {
+//       http: [RPC_URL],
+//     },
+//   },
+//   blockExplorers: {
+//     default: bscExplorer,
+//     etherscan: bscExplorer,
+//   },
+//   nativeCurrency: {
+//     name: "BSC Native Token",
+//     symbol: "BNB",
+//     decimals: 18,
+//   },
+// };
 
 function ConnectButton() {
   const { connectors, connectAsync } = useConnect();
@@ -89,6 +62,7 @@ function ConnectButton() {
   const { data: balance } = useBalance({
     address,
   });
+  const contract = useContract(wagmigotchiContract);
 
   const onConnect = () =>
     connectAsync({ connector: connectors[0], chainId: 1 });
@@ -119,6 +93,11 @@ function ConnectButton() {
     console.log(data);
   };
 
+  const handleContract = async () => {
+    const data = await contract.getAlive();
+    console.log(data);
+  };
+
   const fetchBalance = () => {
     console.log("Balance", balance);
     if (signer) {
@@ -143,6 +122,7 @@ function ConnectButton() {
         <>
           <button onClick={fetchBalance}>Fetch balance</button>
           <button onClick={() => handleMulticall()}>MultiCall</button>
+          <button onClick={() => handleContract()}>Contract</button>
           <button onClick={() => disconnectAsync()}>Disconnect</button>
         </>
       ) : (
@@ -153,11 +133,7 @@ function ConnectButton() {
 }
 
 function App() {
-  return (
-    <WagmiConfig client={client}>
-      <ConnectButton />
-    </WagmiConfig>
-  );
+  return <ConnectButton />;
 }
 
 export default App;
