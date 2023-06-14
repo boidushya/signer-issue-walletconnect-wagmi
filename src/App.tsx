@@ -99,7 +99,10 @@ function ConnectButton() {
   };
 
   const fetchBalance = () => {
-    console.log("Balance", balance);
+    console.log(
+      "Balance from workaround [NOT FROM SIGNER, THIS SHOULD GENERALLY WORK]",
+      balance
+    );
     if (signer) {
       signer.getAddress().then((address) => {
         console.log("Address", address);
